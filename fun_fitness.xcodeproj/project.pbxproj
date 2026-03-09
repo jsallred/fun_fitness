@@ -6,14 +6,61 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B4BDC540A5823EA9A24F2B26 /* Pods_fun_fitness.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BC0DA281A430F57DC868DC44 /* Pods_fun_fitness.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		9CD9B4AC2F564D1E00C6E6CE /* fun_fitness.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = fun_fitness.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F622AE67E34EB4A745CF429 /* Pods-fun_fitness.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fun_fitness.release.xcconfig"; path = "Target Support Files/Pods-fun_fitness/Pods-fun_fitness.release.xcconfig"; sourceTree = "<group>"; };
+		8326AF5FDC20629D79E06980 /* Pods-fun_fitness.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fun_fitness.debug.xcconfig"; path = "Target Support Files/Pods-fun_fitness/Pods-fun_fitness.debug.xcconfig"; sourceTree = "<group>"; };
+		9CD9B5092F5EC6D400C6E6CE /* fun_fitness.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = fun_fitness.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC0DA281A430F57DC868DC44 /* Pods_fun_fitness.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_fun_fitness.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9CD9B4AE2F564D1E00C6E6CE /* fun_fitness */ = {
+		9CD9B4BE2F5EBD1600C6E6CE /* Views */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = fun_fitness;
+			path = Views;
+			sourceTree = "<group>";
+		};
+		9CD9B4BF2F5EBD1D00C6E6CE /* Assets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Assets;
+			sourceTree = "<group>";
+		};
+		9CD9B4C02F5EC00600C6E6CE /* ViewModels */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		9CD9B4C12F5EC00C00C6E6CE /* Utilities */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		9CD9B4C62F5EC01C00C6E6CE /* App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = App;
+			sourceTree = "<group>";
+		};
+		9CD9B4CB2F5EC05000C6E6CE /* Models */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Models;
+			sourceTree = "<group>";
+		};
+		9CD9B4CF2F5EC06200C6E6CE /* Services */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Services;
+			sourceTree = "<group>";
+		};
+		9CD9B4D62F5EC08700C6E6CE /* Tracking */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Tracking;
+			sourceTree = "<group>";
+		};
+		9CD9B4E32F5EC0DA00C6E6CE /* Resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B4BDC540A5823EA9A24F2B26 /* Pods_fun_fitness.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,17 +80,36 @@
 		9CD9B4A32F564D1E00C6E6CE = {
 			isa = PBXGroup;
 			children = (
-				9CD9B4AE2F564D1E00C6E6CE /* fun_fitness */,
-				9CD9B4AD2F564D1E00C6E6CE /* Products */,
+				9CD9B4E32F5EC0DA00C6E6CE /* Resources */,
+				9CD9B4D62F5EC08700C6E6CE /* Tracking */,
+				9CD9B4CF2F5EC06200C6E6CE /* Services */,
+				9CD9B4CB2F5EC05000C6E6CE /* Models */,
+				9CD9B4C12F5EC00C00C6E6CE /* Utilities */,
+				9CD9B4C02F5EC00600C6E6CE /* ViewModels */,
+				9CD9B4BF2F5EBD1D00C6E6CE /* Assets */,
+				9CD9B4BE2F5EBD1600C6E6CE /* Views */,
+				9CD9B4C62F5EC01C00C6E6CE /* App */,
+				D777B7192995648D890D9F47 /* Pods */,
+				C27E5EDCE2AF58E5F98BA85A /* Frameworks */,
+				9CD9B5092F5EC6D400C6E6CE /* fun_fitness.app */,
 			);
 			sourceTree = "<group>";
 		};
-		9CD9B4AD2F564D1E00C6E6CE /* Products */ = {
+		C27E5EDCE2AF58E5F98BA85A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				9CD9B4AC2F564D1E00C6E6CE /* fun_fitness.app */,
+				BC0DA281A430F57DC868DC44 /* Pods_fun_fitness.framework */,
 			);
-			name = Products;
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D777B7192995648D890D9F47 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				8326AF5FDC20629D79E06980 /* Pods-fun_fitness.debug.xcconfig */,
+				4F622AE67E34EB4A745CF429 /* Pods-fun_fitness.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -52,6 +119,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9CD9B4B72F564D2000C6E6CE /* Build configuration list for PBXNativeTarget "fun_fitness" */;
 			buildPhases = (
+				A6E7200242026B00914E20C8 /* [CP] Check Pods Manifest.lock */,
 				9CD9B4A82F564D1E00C6E6CE /* Sources */,
 				9CD9B4A92F564D1E00C6E6CE /* Frameworks */,
 				9CD9B4AA2F564D1E00C6E6CE /* Resources */,
@@ -61,13 +129,19 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9CD9B4AE2F564D1E00C6E6CE /* fun_fitness */,
+				9CD9B4BE2F5EBD1600C6E6CE /* Views */,
+				9CD9B4BF2F5EBD1D00C6E6CE /* Assets */,
+				9CD9B4C02F5EC00600C6E6CE /* ViewModels */,
+				9CD9B4C12F5EC00C00C6E6CE /* Utilities */,
+				9CD9B4C62F5EC01C00C6E6CE /* App */,
+				9CD9B4CB2F5EC05000C6E6CE /* Models */,
+				9CD9B4CF2F5EC06200C6E6CE /* Services */,
+				9CD9B4D62F5EC08700C6E6CE /* Tracking */,
+				9CD9B4E32F5EC0DA00C6E6CE /* Resources */,
 			);
 			name = fun_fitness;
-			packageProductDependencies = (
-			);
 			productName = fun_fitness;
-			productReference = 9CD9B4AC2F564D1E00C6E6CE /* fun_fitness.app */;
+			productReference = 9CD9B5092F5EC6D400C6E6CE /* fun_fitness.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -95,7 +169,7 @@
 			mainGroup = 9CD9B4A32F564D1E00C6E6CE;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 9CD9B4AD2F564D1E00C6E6CE /* Products */;
+			productRefGroup = 9CD9B4A32F564D1E00C6E6CE;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -113,6 +187,31 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A6E7200242026B00914E20C8 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-fun_fitness-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		9CD9B4A82F564D1E00C6E6CE /* Sources */ = {
@@ -248,6 +347,7 @@
 		};
 		9CD9B4B82F564D2000C6E6CE /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8326AF5FDC20629D79E06980 /* Pods-fun_fitness.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -256,11 +356,12 @@
 				DEVELOPMENT_TEAM = XR45H4R485;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to detect exercises locally.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -280,6 +381,7 @@
 		};
 		9CD9B4B92F564D2000C6E6CE /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4F622AE67E34EB4A745CF429 /* Pods-fun_fitness.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -288,11 +390,12 @@
 				DEVELOPMENT_TEAM = XR45H4R485;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app uses the camera to detect exercises locally.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
