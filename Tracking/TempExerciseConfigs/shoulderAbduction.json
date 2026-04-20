@@ -1,0 +1,49 @@
+{
+  "id": "shoulderAbduction",
+  "displayName": "Shoulder Abduction",
+  "instructions": "Raise both arms out to the side, then lower slowly.",
+  "requiredLandmarks": ["leftWrist", "rightWrist", "leftShoulder", "rightShoulder", "leftHip", "rightHip"],
+  "stateMachine": {
+    "initialState": "down",
+    "states": {
+      "down": {
+        "feedback": "raiseArms",
+        "transitions": [
+          {
+            "to": "up",
+            "condition": {
+              "and": [
+                { "gt": [
+                  { "abs": { "sub": [{ "landmark": "leftWrist", "coord": "x" }, { "landmark": "leftShoulder", "coord": "x" }] } },
+                  { "mul": [{ "abs": { "sub": [{ "landmark": "leftHip", "coord": "x" }, { "landmark": "leftShoulder", "coord": "x" }] } }, 1.4] }
+                ] },
+                { "gt": [
+                  { "abs": { "sub": [{ "landmark": "rightWrist", "coord": "x" }, { "landmark": "rightShoulder", "coord": "x" }] } },
+                  { "mul": [{ "abs": { "sub": [{ "landmark": "rightHip", "coord": "x" }, { "landmark": "rightShoulder", "coord": "x" }] } }, 1.4] }
+                ] },
+                { "lt": [{ "abs": { "sub": [{ "landmark": "leftWrist", "coord": "y" }, { "landmark": "leftShoulder", "coord": "y" }] } }, 0.16] },
+                { "lt": [{ "abs": { "sub": [{ "landmark": "rightWrist", "coord": "y" }, { "landmark": "rightShoulder", "coord": "y" }] } }, 0.16] }
+              ]
+            },
+            "countRep": true,
+            "feedback": "goodRep"
+          }
+        ]
+      },
+      "up": {
+        "feedback": "lowerArms",
+        "transitions": [
+          {
+            "to": "down",
+            "condition": {
+              "and": [
+                { "gt": [{ "landmark": "leftWrist", "coord": "y" }, { "add": [{ "landmark": "leftShoulder", "coord": "y" }, 0.18] }] },
+                { "gt": [{ "landmark": "rightWrist", "coord": "y" }, { "add": [{ "landmark": "rightShoulder", "coord": "y" }, 0.18] }] }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

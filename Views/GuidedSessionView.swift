@@ -57,11 +57,11 @@ struct GuidedSessionView: View {
 
             if let current = viewModel.sessionManager.currentExercise,
                let routine = viewModel.sessionManager.routine {
-                Text("\(current.type.displayName) • \(viewModel.sessionManager.currentExerciseIndex + 1) of \(routine.exercises.count)")
+                Text("\(current.displayName) • \(viewModel.sessionManager.currentExerciseIndex + 1) of \(routine.exercises.count)")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.92))
 
-                Text(current.type.instructions)
+                Text(current.instructions)
                     .font(.footnote)
                     .foregroundStyle(.white.opacity(0.82))
             }

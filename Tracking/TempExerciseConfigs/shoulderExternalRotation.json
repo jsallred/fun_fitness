@@ -1,0 +1,50 @@
+{
+  "id": "shoulderExternalRotation",
+  "displayName": "External Rotation",
+  "instructions": "Bend elbows comfortably and rotate forearms outward.",
+  "requiredLandmarks": ["leftElbow", "rightElbow", "leftWrist", "rightWrist", "leftShoulder", "rightShoulder", "leftHip", "rightHip"],
+  "stateMachine": {
+    "initialState": "inward",
+    "guard": {
+      "and": [
+        { "lt": [{ "abs": { "sub": [{ "landmark": "leftElbow", "coord": "x" }, { "landmark": "leftHip", "coord": "x" }] } }, 0.22] },
+        { "lt": [{ "abs": { "sub": [{ "landmark": "rightElbow", "coord": "x" }, { "landmark": "rightHip", "coord": "x" }] } }, 0.22] },
+        { "gt": [{ "abs": { "sub": [{ "landmark": "leftElbow", "coord": "y" }, { "landmark": "leftShoulder", "coord": "y" }] } }, 0.06] },
+        { "gt": [{ "abs": { "sub": [{ "landmark": "rightElbow", "coord": "y" }, { "landmark": "rightShoulder", "coord": "y" }] } }, 0.06] }
+      ]
+    },
+    "guardFeedback": "keepElbowsComfortable",
+    "states": {
+      "inward": {
+        "feedback": "raiseArms",
+        "transitions": [
+          {
+            "to": "outward",
+            "condition": {
+              "and": [
+                { "lt": [{ "landmark": "leftWrist", "coord": "x" }, { "sub": [{ "landmark": "leftElbow", "coord": "x" }, 0.04] }] },
+                { "gt": [{ "landmark": "rightWrist", "coord": "x" }, { "add": [{ "landmark": "rightElbow", "coord": "x" }, 0.04] }] }
+              ]
+            },
+            "countRep": true,
+            "feedback": "goodRep"
+          }
+        ]
+      },
+      "outward": {
+        "feedback": "lowerArms",
+        "transitions": [
+          {
+            "to": "inward",
+            "condition": {
+              "and": [
+                { "lt": [{ "abs": { "sub": [{ "landmark": "leftWrist", "coord": "x" }, { "landmark": "leftElbow", "coord": "x" }] } }, 0.08] },
+                { "lt": [{ "abs": { "sub": [{ "landmark": "rightWrist", "coord": "x" }, { "landmark": "rightElbow", "coord": "x" }] } }, 0.08] }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

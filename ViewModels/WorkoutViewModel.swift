@@ -12,7 +12,7 @@ final class WorkoutViewModel: ObservableObject {
             snapshot.model = selectedModel
             poseService.configure(model: selectedModel)
             tracker.reset()
-            shoulderTracker.reset()
+            currentExerciseTracker?.reset()
         }
     }
 
@@ -21,52 +21,24 @@ final class WorkoutViewModel: ObservableObject {
 
     private let poseService = PoseLandmarkerService()
     private let tracker = ExerciseTracker()
-    private let shoulderTracker = ShoulderRoutineTracker()
+    private let configLoader = ExerciseConfigLoader.shared
+
+    private var currentExerciseTracker: ConfigurableExerciseTracker?
 
     private var recentInferenceTimes: [CFAbsoluteTime] = []
     private let fpsWindowSize = 15
     private var cancellables = Set<AnyCancellable>()
 
-    let betaShouldersRoutine = RehabRoutine(
-        name: "Beta Shoulders 1.0",
-        exercises: [
-            RehabExercise(type: .shoulderFlexion, targetReps: 5),
-            RehabExercise(type: .shoulderAbduction, targetReps: 5),
-            RehabExercise(type: .shoulderExternalRotation, targetReps: 5)
-        ]
-    )
-
-    let betaMobilityRoutine = RehabRoutine(
-        name: "Beta Mobility 1.0",
-        exercises: [
-            RehabExercise(type: .shoulderFlexion, targetReps: 5),
-            RehabExercise(type: .shoulderScaption, targetReps: 5),
-            RehabExercise(type: .shoulderAbduction, targetReps: 5)
-        ]
-    )
-
-    let betaRotatorCuffRoutine = RehabRoutine(
-        name: "Beta Rotator Cuff 1.0",
-        exercises: [
-            RehabExercise(type: .shoulderExternalRotation, targetReps: 5),
-            RehabExercise(type: .shoulderScaption, targetReps: 5),
-            RehabExercise(type: .shoulderFlexion, targetReps: 5)
-        ]
-    )
-
-    var availableRoutines: [RehabRoutine] {
-        [
-            betaShouldersRoutine,
-            betaMobilityRoutine,
-            betaRotatorCuffRoutine
-        ]
-    }
+    private(set) var availableRoutines: [RehabRoutine] = []
 
     init() {
         snapshot.model = selectedModel
         cameraService.delegate = self
         poseService.delegate = self
         poseService.configure(model: selectedModel)
+
+        configLoader.loadAll()
+        availableRoutines = configLoader.buildRehabRoutines()
 
         sessionManager.objectWillChange
             .sink { [weak self] _ in
@@ -85,14 +57,23 @@ final class WorkoutViewModel: ObservableObject {
 
     func startRoutine(_ routine: RehabRoutine) {
         tracker.reset()
-        shoulderTracker.reset()
         sessionManager.start(routine: routine)
+        loadTrackerForCurrentExercise()
     }
 
     func endRoutine() {
         tracker.reset()
-        shoulderTracker.reset()
+        currentExerciseTracker = nil
         sessionManager.endSession()
+    }
+
+    private func loadTrackerForCurrentExercise() {
+        guard let exercise = sessionManager.currentExercise,
+              let config = configLoader.exerciseConfig(for: exercise.configId) else {
+            currentExerciseTracker = nil
+            return
+        }
+        currentExerciseTracker = ConfigurableExerciseTracker(config: config)
     }
 }
 
@@ -132,10 +113,18 @@ extension WorkoutViewModel: PoseLandmarkerServiceDelegate {
         snapshot.jackReps = tracker.jack.reps
         snapshot.kneeAngle = tracker.kneeAngle
 
-        if let currentExercise = sessionManager.currentExercise,
-           sessionManager.state == .active {
-            let progress = shoulderTracker.update(for: currentExercise.type, points: frame.points)
+        if sessionManager.state == .active,
+           let exerciseTracker = currentExerciseTracker {
+            let progress = exerciseTracker.update(points: frame.points, nowMs: frame.timestampMs)
+            let previousIndex = sessionManager.currentExerciseIndex
             sessionManager.updateProgress(reps: progress.reps, feedback: progress.feedback)
+
+            if sessionManager.currentExerciseIndex != previousIndex ||
+               sessionManager.state == .transitioning {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { [weak self] in
+                    self?.loadTrackerForCurrentExercise()
+                }
+            }
         }
     }
 }

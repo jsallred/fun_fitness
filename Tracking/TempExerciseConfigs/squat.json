@@ -1,0 +1,68 @@
+{
+  "id": "squat",
+  "displayName": "Squat",
+  "instructions": "Stand with feet shoulder-width apart, lower into a squat.",
+  "requiredLandmarks": ["leftHip", "leftKnee", "leftAnkle", "rightHip", "rightKnee", "rightAnkle"],
+  "variables": {
+    "kneeAngle": {
+      "expr": { "min": [
+        { "angle": ["leftHip", "leftKnee", "leftAnkle"] },
+        { "angle": ["rightHip", "rightKnee", "rightAnkle"] }
+      ]},
+      "smoothing": { "type": "ema", "alpha": 0.25 }
+    }
+  },
+  "stateMachine": {
+    "initialState": "UP",
+    "repCooldownMs": 450,
+    "states": {
+      "UP": {
+        "transitions": [
+          {
+            "to": "DESCENDING",
+            "condition": { "lt": [{ "var": "kneeAngle" }, 155.0] }
+          }
+        ]
+      },
+      "DESCENDING": {
+        "transitions": [
+          {
+            "to": "UP",
+            "condition": { "not": { "lt": [{ "var": "kneeAngle" }, 155.0] } }
+          },
+          {
+            "to": "DOWN",
+            "enterCondition": { "lt": [{ "var": "kneeAngle" }, 155.0] },
+            "confirmCondition": { "lt": [{ "var": "kneeAngle" }, 150.0] },
+            "confirmFrames": 4,
+            "confirmMode": "soft"
+          }
+        ]
+      },
+      "DOWN": {
+        "transitions": [
+          {
+            "to": "ASCENDING",
+            "condition": { "gt": [{ "var": "kneeAngle" }, 150.0] }
+          }
+        ]
+      },
+      "ASCENDING": {
+        "transitions": [
+          {
+            "to": "DOWN",
+            "condition": { "not": { "gt": [{ "var": "kneeAngle" }, 150.0] } }
+          },
+          {
+            "to": "UP",
+            "enterCondition": { "gt": [{ "var": "kneeAngle" }, 150.0] },
+            "confirmCondition": { "gt": [{ "var": "kneeAngle" }, 160.0] },
+            "confirmFrames": 4,
+            "confirmMode": "soft",
+            "countRep": true
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "betaShoulders",
+    "name": "Beta Shoulders 1.0",
+    "exercises": [
+      { "exerciseId": "shoulderFlexion", "targetReps": 5 },
+      { "exerciseId": "shoulderAbduction", "targetReps": 5 },
+      { "exerciseId": "shoulderExternalRotation", "targetReps": 5 }
+    ]
+  },
+  {
+    "id": "betaMobility",
+    "name": "Beta Mobility 1.0",
+    "exercises": [
+      { "exerciseId": "shoulderFlexion", "targetReps": 5 },
+      { "exerciseId": "shoulderScaption", "targetReps": 5 },
+      { "exerciseId": "shoulderAbduction", "targetReps": 5 }
+    ]
+  },
+  {
+    "id": "betaRotatorCuff",
+    "name": "Beta Rotator Cuff 1.0",
+    "exercises": [
+      { "exerciseId": "shoulderExternalRotation", "targetReps": 5 },
+      { "exerciseId": "shoulderScaption", "targetReps": 5 },
+      { "exerciseId": "shoulderFlexion", "targetReps": 5 }
+    ]
+  }
+]

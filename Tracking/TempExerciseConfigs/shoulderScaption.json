@@ -1,0 +1,56 @@
+{
+  "id": "shoulderScaption",
+  "displayName": "Scaption Raise",
+  "instructions": "Raise both arms in a soft V between forward and side.",
+  "requiredLandmarks": ["leftWrist", "rightWrist", "leftShoulder", "rightShoulder"],
+  "variables": {
+    "shoulderWidth": {
+      "expr": { "max": [{ "abs": { "sub": [{ "landmark": "rightShoulder", "coord": "x" }, { "landmark": "leftShoulder", "coord": "x" }] } }, 0.08] }
+    },
+    "leftDx": {
+      "expr": { "abs": { "sub": [{ "landmark": "leftWrist", "coord": "x" }, { "landmark": "leftShoulder", "coord": "x" }] } }
+    },
+    "rightDx": {
+      "expr": { "abs": { "sub": [{ "landmark": "rightWrist", "coord": "x" }, { "landmark": "rightShoulder", "coord": "x" }] } }
+    }
+  },
+  "stateMachine": {
+    "initialState": "down",
+    "states": {
+      "down": {
+        "feedback": "raiseArms",
+        "transitions": [
+          {
+            "to": "up",
+            "condition": {
+              "and": [
+                { "gt": [{ "var": "leftDx" }, { "mul": [{ "var": "shoulderWidth" }, 0.35] }] },
+                { "lt": [{ "var": "leftDx" }, { "mul": [{ "var": "shoulderWidth" }, 1.15] }] },
+                { "gt": [{ "var": "rightDx" }, { "mul": [{ "var": "shoulderWidth" }, 0.35] }] },
+                { "lt": [{ "var": "rightDx" }, { "mul": [{ "var": "shoulderWidth" }, 1.15] }] },
+                { "lt": [{ "landmark": "leftWrist", "coord": "y" }, { "add": [{ "landmark": "leftShoulder", "coord": "y" }, 0.02] }] },
+                { "lt": [{ "landmark": "rightWrist", "coord": "y" }, { "add": [{ "landmark": "rightShoulder", "coord": "y" }, 0.02] }] }
+              ]
+            },
+            "countRep": true,
+            "feedback": "goodRep"
+          }
+        ]
+      },
+      "up": {
+        "feedback": "lowerArms",
+        "transitions": [
+          {
+            "to": "down",
+            "condition": {
+              "and": [
+                { "gt": [{ "landmark": "leftWrist", "coord": "y" }, { "add": [{ "landmark": "leftShoulder", "coord": "y" }, 0.18] }] },
+                { "gt": [{ "landmark": "rightWrist", "coord": "y" }, { "add": [{ "landmark": "rightShoulder", "coord": "y" }, 0.18] }] }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

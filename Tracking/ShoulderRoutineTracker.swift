@@ -1,10 +1,8 @@
 import Foundation
 
+/// Legacy hardcoded tracker -- replaced by ConfigurableExerciseTracker + JSON configs.
+/// Kept for reference; nothing in the app calls into this class anymore.
 final class ShoulderRoutineTracker {
-    struct ExerciseProgress {
-        var reps: Int = 0
-        var feedback: ExerciseFeedback = .ready
-    }
 
     private struct FlexionState {
         var phase: Phase = .down
@@ -45,16 +43,18 @@ final class ShoulderRoutineTracker {
         scaption = ScaptionState()
     }
 
-    func update(for exercise: RehabExerciseType, points: [PosePoint]) -> ExerciseProgress {
-        switch exercise {
-        case .shoulderFlexion:
+    func update(for exerciseId: String, points: [PosePoint]) -> ExerciseProgress {
+        switch exerciseId {
+        case "shoulderFlexion":
             return updateFlexion(points: points)
-        case .shoulderAbduction:
+        case "shoulderAbduction":
             return updateAbduction(points: points)
-        case .shoulderExternalRotation:
+        case "shoulderExternalRotation":
             return updateExternalRotation(points: points)
-        case .shoulderScaption:
+        case "shoulderScaption":
             return updateScaption(points: points)
+        default:
+            return ExerciseProgress()
         }
     }
 

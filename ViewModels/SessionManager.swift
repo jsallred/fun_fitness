@@ -55,7 +55,7 @@ final class SessionManager: ObservableObject {
             isAdvancing = true
             state = .transitioning
             feedback = .complete
-            nextExerciseName = routine.exercises[currentExerciseIndex + 1].type.displayName
+            nextExerciseName = routine.exercises[currentExerciseIndex + 1].displayName
 
             Task {
                 try? await Task.sleep(nanoseconds: 1_500_000_000)

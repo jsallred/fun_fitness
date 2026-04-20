@@ -1,0 +1,41 @@
+{
+  "id": "shoulderFlexion",
+  "displayName": "Shoulder Flexion",
+  "instructions": "Raise both arms forward, then lower slowly.",
+  "requiredLandmarks": ["leftWrist", "rightWrist", "leftShoulder", "rightShoulder"],
+  "stateMachine": {
+    "initialState": "down",
+    "states": {
+      "down": {
+        "feedback": "raiseArms",
+        "transitions": [
+          {
+            "to": "up",
+            "condition": {
+              "and": [
+                { "lt": [{ "landmark": "leftWrist", "coord": "y" }, { "landmark": "leftShoulder", "coord": "y" }] },
+                { "lt": [{ "landmark": "rightWrist", "coord": "y" }, { "landmark": "rightShoulder", "coord": "y" }] }
+              ]
+            },
+            "countRep": true,
+            "feedback": "goodRep"
+          }
+        ]
+      },
+      "up": {
+        "feedback": "lowerArms",
+        "transitions": [
+          {
+            "to": "down",
+            "condition": {
+              "and": [
+                { "gt": [{ "landmark": "leftWrist", "coord": "y" }, { "add": [{ "landmark": "leftShoulder", "coord": "y" }, 0.18] }] },
+                { "gt": [{ "landmark": "rightWrist", "coord": "y" }, { "add": [{ "landmark": "rightShoulder", "coord": "y" }, 0.18] }] }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "id": "jumpingJack",
+  "displayName": "Jumping Jack",
+  "instructions": "Jump to spread your legs and raise your arms, then return.",
+  "requiredLandmarks": ["leftWrist", "rightWrist", "leftAnkle", "rightAnkle", "leftShoulder", "rightShoulder", "leftHip", "rightHip"],
+  "variables": {
+    "handsHigh": {
+      "expr": { "clamp01": { "div": [
+        { "sub": [
+          { "div": [{ "add": [{ "landmark": "leftShoulder", "coord": "y" }, { "landmark": "rightShoulder", "coord": "y" }] }, 2.0] },
+          { "div": [{ "add": [{ "landmark": "leftWrist", "coord": "y" }, { "landmark": "rightWrist", "coord": "y" }] }, 2.0] }
+        ] },
+        { "mul": [
+          0.9,
+          { "max": [
+            { "abs": { "sub": [{ "landmark": "leftShoulder", "coord": "x" }, { "landmark": "rightShoulder", "coord": "x" }] } },
+            0.001
+          ] }
+        ] }
+      ] } },
+      "smoothing": { "type": "ema", "alpha": 0.25 }
+    },
+    "feetWide": {
+      "expr": { "clamp01": { "div": [
+        { "sub": [
+          { "abs": { "sub": [{ "landmark": "leftAnkle", "coord": "x" }, { "landmark": "rightAnkle", "coord": "x" }] } },
+          { "mul": [
+            1.2,
+            { "max": [
+              { "abs": { "sub": [{ "landmark": "leftHip", "coord": "x" }, { "landmark": "rightHip", "coord": "x" }] } },
+              0.001
+            ] }
+          ] }
+        ] },
+        { "mul": [
+          1.8,
+          { "max": [
+            { "abs": { "sub": [{ "landmark": "leftHip", "coord": "x" }, { "landmark": "rightHip", "coord": "x" }] } },
+            0.001
+          ] }
+        ] }
+      ] } },
+      "smoothing": { "type": "ema", "alpha": 0.25 }
+    }
+  },
+  "stateMachine": {
+    "initialState": "CLOSED",
+    "repCooldownMs": 350,
+    "states": {
+      "CLOSED": {
+        "transitions": [
+          {
+            "to": "OPENING",
+            "condition": {
+              "and": [
+                { "gt": [{ "var": "handsHigh" }, 0.7] },
+                { "gt": [{ "var": "feetWide" }, 0.65] }
+              ]
+            }
+          }
+        ]
+      },
+      "OPENING": {
+        "transitions": [
+          {
+            "to": "CLOSED",
+            "condition": {
+              "not": {
+                "and": [
+                  { "gt": [{ "var": "handsHigh" }, 0.7] },
+                  { "gt": [{ "var": "feetWide" }, 0.65] }
+                ]
+              }
+            }
+          },
+          {
+            "to": "OPEN",
+            "enterCondition": {
+              "and": [
+                { "gt": [{ "var": "handsHigh" }, 0.7] },
+                { "gt": [{ "var": "feetWide" }, 0.65] }
+              ]
+            },
+            "confirmCondition": {
+              "and": [
+                { "gt": [{ "var": "handsHigh" }, 0.7] },
+                { "gt": [{ "var": "feetWide" }, 0.65] }
+              ]
+            },
+            "confirmFrames": 5,
+            "confirmMode": "strict"
+          }
+        ]
+      },
+      "OPEN": {
+        "transitions": [
+          {
+            "to": "CLOSING",
+            "condition": {
+              "and": [
+                { "lt": [{ "var": "handsHigh" }, 0.45] },
+                { "lt": [{ "var": "feetWide" }, 0.45] }
+              ]
+            }
+          }
+        ]
+      },
+      "CLOSING": {
+        "transitions": [
+          {
+            "to": "OPEN",
+            "condition": {
+              "not": {
+                "and": [
+                  { "lt": [{ "var": "handsHigh" }, 0.45] },
+                  { "lt": [{ "var": "feetWide" }, 0.45] }
+                ]
+              }
+            }
+          },
+          {
+            "to": "CLOSED",
+            "enterCondition": {
+              "and": [
+                { "lt": [{ "var": "handsHigh" }, 0.45] },
+                { "lt": [{ "var": "feetWide" }, 0.45] }
+              ]
+            },
+            "confirmCondition": {
+              "and": [
+                { "lt": [{ "var": "handsHigh" }, 0.45] },
+                { "lt": [{ "var": "feetWide" }, 0.45] }
+              ]
+            },
+            "confirmFrames": 5,
+            "confirmMode": "strict",
+            "countRep": true
+          }
+        ]
+      }
+    }
+  }
+}
