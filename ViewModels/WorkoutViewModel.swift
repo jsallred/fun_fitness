@@ -11,55 +11,43 @@ final class WorkoutViewModel: ObservableObject {
         didSet {
             snapshot.model = selectedModel
             poseService.configure(model: selectedModel)
-            tracker.reset()
-            shoulderTracker.reset()
+            resetTrackingState()
         }
     }
+
+    @Published var settings = AppSettings()
+    @Published var isShowingSettings = false
 
     let cameraService = CameraService()
     let sessionManager = SessionManager()
 
     private let poseService = PoseLandmarkerService()
     private let tracker = ExerciseTracker()
-    private let shoulderTracker = ShoulderRoutineTracker()
+    private let multiPersonTracker = MultiPersonTracker()
+    private let faceGallery = SessionFaceGallery()
+    private let audioCueService = AudioCueService()
 
     private var recentInferenceTimes: [CFAbsoluteTime] = []
     private let fpsWindowSize = 15
     private var cancellables = Set<AnyCancellable>()
 
-    let betaShouldersRoutine = RehabRoutine(
-        name: "Beta Shoulders 1.0",
-        exercises: [
-            RehabExercise(type: .shoulderFlexion, targetReps: 5),
-            RehabExercise(type: .shoulderAbduction, targetReps: 5),
-            RehabExercise(type: .shoulderExternalRotation, targetReps: 5)
-        ]
-    )
-
-    let betaMobilityRoutine = RehabRoutine(
-        name: "Beta Mobility 1.0",
-        exercises: [
-            RehabExercise(type: .shoulderFlexion, targetReps: 5),
-            RehabExercise(type: .shoulderScaption, targetReps: 5),
-            RehabExercise(type: .shoulderAbduction, targetReps: 5)
-        ]
-    )
-
-    let betaRotatorCuffRoutine = RehabRoutine(
-        name: "Beta Rotator Cuff 1.0",
-        exercises: [
-            RehabExercise(type: .shoulderExternalRotation, targetReps: 5),
-            RehabExercise(type: .shoulderScaption, targetReps: 5),
-            RehabExercise(type: .shoulderFlexion, targetReps: 5)
-        ]
-    )
-
     var availableRoutines: [RehabRoutine] {
-        [
-            betaShouldersRoutine,
-            betaMobilityRoutine,
-            betaRotatorCuffRoutine
-        ]
+        RehabRoutineLibrary.all
+    }
+
+    var appVersionText: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+
+        if let build, !build.isEmpty {
+            return "v\(version) (\(build))"
+        } else {
+            return "v\(version)"
+        }
+    }
+
+    var isDemoRoutineActive: Bool {
+        sessionManager.routine?.isDemoRoutine == true
     }
 
     init() {
@@ -69,6 +57,12 @@ final class WorkoutViewModel: ObservableObject {
         poseService.configure(model: selectedModel)
 
         sessionManager.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        settings.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
@@ -84,15 +78,139 @@ final class WorkoutViewModel: ObservableObject {
     }
 
     func startRoutine(_ routine: RehabRoutine) {
-        tracker.reset()
-        shoulderTracker.reset()
+        resetTrackingState()
         sessionManager.start(routine: routine)
     }
 
-    func endRoutine() {
+    func beginQuitRoutine(message: String = "Returning to Home Screen") {
+        resetTrackingState()
+        sessionManager.beginQuit(message: message)
+    }
+
+    func continuePastLogin() {
+        sessionManager.continuePastLogin()
+    }
+
+    func openSettings() {
+        isShowingSettings = true
+    }
+
+    private func resetTrackingState() {
         tracker.reset()
-        shoulderTracker.reset()
-        sessionManager.endSession()
+        multiPersonTracker.reset()
+        faceGallery.reset()
+
+        snapshot.activity = .unknown
+        snapshot.squatReps = 0
+        snapshot.jackReps = 0
+        snapshot.kneeAngle = nil
+        snapshot.poseFrame = PoseFrame()
+        snapshot.multiPersonFrame = MultiPersonPoseFrame()
+        snapshot.trackedPeople = []
+    }
+
+    private func updateFPS() {
+        let now = CFAbsoluteTimeGetCurrent()
+        recentInferenceTimes.append(now)
+
+        if recentInferenceTimes.count > fpsWindowSize {
+            recentInferenceTimes.removeFirst()
+        }
+
+        var fps = 0.0
+        if recentInferenceTimes.count >= 2 {
+            let duration = recentInferenceTimes.last! - recentInferenceTimes.first!
+            if duration > 0 {
+                fps = Double(recentInferenceTimes.count - 1) / duration
+            }
+        }
+
+        snapshot.inferenceFPS = fps
+    }
+
+    private func updateSinglePersonSnapshot(from frame: PoseFrame) {
+        tracker.update(points: frame.points, nowMs: frame.timestampMs)
+        snapshot.activity = tracker.activity
+        snapshot.squatReps = tracker.squat.reps
+        snapshot.jackReps = tracker.jack.reps
+        snapshot.kneeAngle = tracker.kneeAngle
+    }
+
+    private func updateMultiPersonTracking(from multiFrame: MultiPersonPoseFrame) {
+        let previousByID = Dictionary(uniqueKeysWithValues: snapshot.trackedPeople.map { ($0.id, $0) })
+
+        let limitedDetections = Array(multiFrame.persons.prefix(settings.maxVisiblePeople))
+
+        _ = multiPersonTracker.update(
+            detections: limitedDetections,
+            timestampMs: multiFrame.timestampMs,
+            settings: settings,
+            gallery: faceGallery
+        )
+
+        if let routine = sessionManager.routine, sessionManager.state == .active {
+            for person in multiPersonTracker.sortedVisiblePeople() where person.isReadyForExercise {
+                if routine.mode == .demo {
+                    multiPersonTracker.updateDemoCounters(
+                        for: person.id,
+                        points: person.points,
+                        timestampMs: multiFrame.timestampMs
+                    )
+                } else if let currentExercise = sessionManager.currentExercise {
+                    multiPersonTracker.updateGuidedProgress(
+                        for: person.id,
+                        exercise: currentExercise,
+                        points: person.points
+                    )
+                }
+            }
+        }
+
+        let finalTracked = multiPersonTracker.sortedVisiblePeople()
+        snapshot.trackedPeople = finalTracked
+
+        playAudioCues(previous: previousByID, current: finalTracked)
+    }
+
+    private func playAudioCues(previous: [TrackedPersonID: TrackedPerson], current: [TrackedPerson]) {
+        guard settings.audioCuesEnabled else { return }
+
+        var playedReady = false
+        var playedRep = false
+        var playedInvalid = false
+
+        for person in current {
+            let old = previous[person.id]
+
+            if person.isReadyForExercise && old?.isReadyForExercise != true && !playedReady {
+                audioCueService.playReadyToBegin()
+                playedReady = true
+            }
+
+            if old?.isReadyForExercise == true && !person.isReadyForExercise && !playedInvalid {
+                audioCueService.playInvalidTracking()
+                playedInvalid = true
+            }
+
+            if isDemoRoutineActive {
+                let oldSquats = old?.exerciseState.demoCounters.squats ?? 0
+                let oldJacks = old?.exerciseState.demoCounters.jumpingJacks ?? 0
+
+                if (person.exerciseState.demoCounters.squats > oldSquats ||
+                    person.exerciseState.demoCounters.jumpingJacks > oldJacks) && !playedRep {
+                    audioCueService.playRepComplete()
+                    playedRep = true
+                }
+            } else {
+                let oldReps = old?.exerciseState.guidedProgress.currentReps ?? 0
+                let newReps = person.exerciseState.guidedProgress.currentReps
+
+                if newReps > oldReps && !playedRep {
+                    audioCueService.playRepComplete()
+                    playedRep = true
+                }
+            }
+        }
     }
 }
 
@@ -108,34 +226,40 @@ extension WorkoutViewModel: CameraServiceDelegate {
 extension WorkoutViewModel: PoseLandmarkerServiceDelegate {
     func poseLandmarkerService(_ service: PoseLandmarkerService,
                                didOutput frame: PoseFrame,
+                               multiPersonFrame: MultiPersonPoseFrame,
                                inferenceMs: Double) {
-        tracker.update(points: frame.points, nowMs: frame.timestampMs)
+        snapshot.poseFrame = frame
+        snapshot.multiPersonFrame = multiPersonFrame
 
-        let now = CFAbsoluteTimeGetCurrent()
-        recentInferenceTimes.append(now)
-        if recentInferenceTimes.count > fpsWindowSize {
-            recentInferenceTimes.removeFirst()
-        }
+        updateFPS()
+        updateSinglePersonSnapshot(from: frame)
+        updateMultiPersonTracking(from: multiPersonFrame)
 
-        var fps = 0.0
-        if recentInferenceTimes.count >= 2 {
-            let duration = recentInferenceTimes.last! - recentInferenceTimes.first!
-            if duration > 0 {
-                fps = Double(recentInferenceTimes.count - 1) / duration
+        if !isDemoRoutineActive,
+           sessionManager.state == .active,
+           let currentExercise = sessionManager.currentExercise {
+            let bestProgress = snapshot.trackedPeople
+                .filter { $0.isReadyForExercise }
+                .map { person in
+                    (
+                        reps: person.exerciseState.guidedProgress.currentReps,
+                        feedback: person.exerciseState.guidedProgress.feedback
+                    )
+                }
+                .max { lhs, rhs in
+                    lhs.reps < rhs.reps
+                }
+
+            if let bestProgress {
+                sessionManager.updateProgress(
+                    reps: bestProgress.reps,
+                    feedback: bestProgress.feedback
+                )
+            } else if currentExercise.targetReps == nil {
+                sessionManager.updateProgress(reps: 0, feedback: .ready)
             }
         }
 
-        snapshot.poseFrame = frame
-        snapshot.inferenceFPS = fps
-        snapshot.activity = tracker.activity
-        snapshot.squatReps = tracker.squat.reps
-        snapshot.jackReps = tracker.jack.reps
-        snapshot.kneeAngle = tracker.kneeAngle
-
-        if let currentExercise = sessionManager.currentExercise,
-           sessionManager.state == .active {
-            let progress = shoulderTracker.update(for: currentExercise.type, points: frame.points)
-            sessionManager.updateProgress(reps: progress.reps, feedback: progress.feedback)
-        }
+        let _ = inferenceMs
     }
 }

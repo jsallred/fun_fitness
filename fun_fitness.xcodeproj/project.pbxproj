@@ -63,6 +63,16 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		9CF75E512F958F710062625E /* Recognition */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Recognition;
+			sourceTree = "<group>";
+		};
+		9CF75E532F958FB10062625E /* Settings */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Settings;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +90,8 @@
 		9CD9B4A32F564D1E00C6E6CE = {
 			isa = PBXGroup;
 			children = (
+				9CF75E532F958FB10062625E /* Settings */,
+				9CF75E512F958F710062625E /* Recognition */,
 				9CD9B4E32F5EC0DA00C6E6CE /* Resources */,
 				9CD9B4D62F5EC08700C6E6CE /* Tracking */,
 				9CD9B4CF2F5EC06200C6E6CE /* Services */,
@@ -138,6 +150,8 @@
 				9CD9B4CF2F5EC06200C6E6CE /* Services */,
 				9CD9B4D62F5EC08700C6E6CE /* Tracking */,
 				9CD9B4E32F5EC0DA00C6E6CE /* Resources */,
+				9CF75E512F958F710062625E /* Recognition */,
+				9CF75E532F958FB10062625E /* Settings */,
 			);
 			name = fun_fitness;
 			productName = fun_fitness;

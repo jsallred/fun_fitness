@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  fun_fitness
-//
-//  Created by Joseph Allred on 3/2/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
@@ -13,15 +6,21 @@ struct ContentView: View {
     var body: some View {
         Group {
             switch viewModel.sessionManager.state {
-            case .idle:
+            case .login:
+                LoginView {
+                    viewModel.continuePastLogin()
+                }
+
+            case .home:
                 SessionSelectionView(
                     routines: viewModel.availableRoutines,
+                    appVersion: viewModel.appVersionText,
                     startRoutine: { routine in
                         viewModel.startRoutine(routine)
                     }
                 )
 
-            case .active, .transitioning, .completed:
+            case .active, .transitioning, .quitting, .completed:
                 GuidedSessionView(viewModel: viewModel)
             }
         }

@@ -10,8 +10,24 @@ struct GuidedSessionView: View {
             CameraPreviewView(session: viewModel.cameraService.session)
                 .ignoresSafeArea()
 
-            PoseOverlayView(frame: viewModel.snapshot.poseFrame)
-                .ignoresSafeArea()
+            PoseOverlayView(
+                trackedPeople: viewModel.snapshot.trackedPeople,
+                showHUDs: viewModel.settings.showPersonHUDs,
+                showIDs: viewModel.settings.showPersonIDs,
+                highlightTentativeTracks: viewModel.settings.highlightTentativeTracks
+            )
+            .ignoresSafeArea()
+
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.55),
+                    Color.clear,
+                    Color.black.opacity(0.65)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 10) {
                 topCard
@@ -24,6 +40,16 @@ struct GuidedSessionView: View {
             if viewModel.sessionManager.state == .transitioning {
                 transitionOverlay
             }
+
+            if viewModel.sessionManager.state == .quitting {
+                quittingOverlay
+            }
+        }
+        .sheet(isPresented: $viewModel.isShowingSettings) {
+            SettingsView(
+                settings: viewModel.settings,
+                selectedModel: $viewModel.selectedModel
+            )
         }
         .onAppear {
             viewModel.startCamera()
@@ -43,20 +69,39 @@ struct GuidedSessionView: View {
                 Spacer()
 
                 Button(action: {
-                    viewModel.endRoutine()
+                    viewModel.openSettings()
+                }) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(10)
+                        .background(Color.white.opacity(0.14))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+
+                Button(action: {
+                    viewModel.beginQuitRoutine(message: "Returning to Home Screen")
                 }) {
                     Text("Quit")
                         .fontWeight(.semibold)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.red.opacity(0.85))
+                        .background(Color.red.opacity(0.88))
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
 
-            if let current = viewModel.sessionManager.currentExercise,
-               let routine = viewModel.sessionManager.routine {
+            if viewModel.isDemoRoutineActive {
+                Text("Live demo mode")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.92))
+
+                Text("Your skeleton turns red to green based on how well your full body is visible. Reps only count when you are green and ready.")
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.82))
+            } else if let current = viewModel.sessionManager.currentExercise,
+                      let routine = viewModel.sessionManager.routine {
                 Text("\(current.type.displayName) • \(viewModel.sessionManager.currentExerciseIndex + 1) of \(routine.exercises.count)")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.92))
@@ -67,52 +112,124 @@ struct GuidedSessionView: View {
             }
         }
         .padding(12)
-        .background(.black.opacity(0.45))
+        .background(.black.opacity(0.42))
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private var bottomCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if let current = viewModel.sessionManager.currentExercise {
+        VStack(alignment: .leading, spacing: 12) {
+            readinessSummary
+
+            if viewModel.isDemoRoutineActive {
+                demoSummary
+            } else if let current = viewModel.sessionManager.currentExercise,
+                      let target = current.targetReps {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Reps")
+                    Text("Best visible progress")
                         .foregroundStyle(.gray)
 
-                    Text("\(viewModel.sessionManager.currentReps) / \(current.targetReps)")
+                    Text("\(viewModel.sessionManager.currentReps) / \(target)")
                         .font(.system(size: 40, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
                 }
             }
 
-            row("Feedback", viewModel.sessionManager.feedback.rawValue)
+            row("People visible", "\(viewModel.snapshot.trackedPeople.count)")
+            row("Ready people", "\(viewModel.snapshot.trackedPeople.filter(\.isReadyForExercise).count)")
             row("FPS", fpsText)
             row("Model", viewModel.snapshot.model.displayName)
 
-            if viewModel.sessionManager.state == .completed {
-                Text("Routine Complete")
-                    .font(.headline)
-                    .foregroundStyle(.green)
-                    .padding(.top, 6)
+            if !viewModel.isDemoRoutineActive {
+                row("Feedback", viewModel.sessionManager.feedback.rawValue)
 
-                Button(action: {
-                    viewModel.endRoutine()
-                }) {
-                    Text("Back to Home")
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue.opacity(0.9))
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                if viewModel.sessionManager.state == .completed {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Routine Complete")
+                            .font(.headline)
+                            .foregroundStyle(.green)
+
+                        Button(action: {
+                            viewModel.beginQuitRoutine(message: "Returning to Home Screen")
+                        }) {
+                            Text("Back to Home")
+                                .fontWeight(.semibold)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                .frame(maxWidth: .infinity)
+                                .background(Color.blue.opacity(0.92))
+                                .foregroundStyle(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                    }
+                    .padding(.top, 4)
                 }
-                .padding(.top, 4)
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.black.opacity(0.45))
+        .background(.black.opacity(0.42))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var readinessSummary: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Tracking quality")
+                .font(.headline)
+                .foregroundStyle(.white)
+
+            if viewModel.snapshot.trackedPeople.isEmpty {
+                Text("Step fully into the camera frame until your skeleton turns green.")
+                    .foregroundStyle(.white.opacity(0.82))
+                    .font(.subheadline)
+            } else if viewModel.snapshot.trackedPeople.contains(where: \.isReadyForExercise) {
+                Text("Green people are ready and their reps can be counted.")
+                    .foregroundStyle(.green)
+                    .font(.subheadline.weight(.semibold))
+            } else {
+                Text("Move farther into frame until your skeleton becomes green.")
+                    .foregroundStyle(.orange)
+                    .font(.subheadline.weight(.semibold))
+            }
+        }
+    }
+
+    private var demoSummary: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Tracked People")
+                .font(.headline)
+                .foregroundStyle(.white)
+
+            if viewModel.snapshot.trackedPeople.isEmpty {
+                Text("No people tracked yet")
+                    .foregroundStyle(.white.opacity(0.78))
+            } else {
+                ForEach(Array(viewModel.snapshot.trackedPeople.enumerated()), id: \.element.id) { index, person in
+                    HStack {
+                        Text(viewModel.settings.showPersonIDs ? person.displayName : "Person \(index + 1)")
+                            .foregroundStyle(.white)
+                            .fontWeight(.semibold)
+
+                        Spacer()
+
+                        Text(person.isReadyForExercise ? "Ready" : "Not ready")
+                            .foregroundStyle(person.isReadyForExercise ? .green : .orange)
+
+                        Text("•")
+                            .foregroundStyle(.white.opacity(0.55))
+
+                        Text("Squats \(person.exerciseState.demoCounters.squats)")
+                            .foregroundStyle(.white.opacity(0.86))
+
+                        Text("•")
+                            .foregroundStyle(.white.opacity(0.55))
+
+                        Text("Jacks \(person.exerciseState.demoCounters.jumpingJacks)")
+                            .foregroundStyle(.white.opacity(0.86))
+                    }
+                    .font(.subheadline)
+                }
+            }
+        }
     }
 
     private var transitionOverlay: some View {
@@ -133,7 +250,24 @@ struct GuidedSessionView: View {
             }
             .padding(24)
         }
-        .transition(.opacity)
+    }
+
+    private var quittingOverlay: some View {
+        ZStack {
+            Color.orange.opacity(0.90)
+                .ignoresSafeArea()
+
+            VStack(spacing: 14) {
+                Text("Ending Session")
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+
+                Text(viewModel.sessionManager.quitMessage ?? "Returning to Home Screen")
+                    .font(.title3)
+                    .foregroundStyle(.white.opacity(0.95))
+            }
+            .padding(24)
+        }
     }
 
     private var fpsText: String {

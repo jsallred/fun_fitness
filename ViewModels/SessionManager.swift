@@ -7,10 +7,26 @@ final class SessionManager: ObservableObject {
     @Published private(set) var currentExerciseIndex: Int = 0
     @Published private(set) var currentReps: Int = 0
     @Published private(set) var feedback: ExerciseFeedback = .ready
-    @Published private(set) var state: SessionState = .idle
+    @Published private(set) var state: SessionState = .login
     @Published private(set) var nextExerciseName: String?
+    @Published private(set) var quitMessage: String?
 
     private var isAdvancing = false
+
+    func continuePastLogin() {
+        state = .home
+    }
+
+    func goHome() {
+        routine = nil
+        currentExerciseIndex = 0
+        currentReps = 0
+        feedback = .ready
+        nextExerciseName = nil
+        quitMessage = nil
+        state = .home
+        isAdvancing = false
+    }
 
     func start(routine: RehabRoutine) {
         self.routine = routine
@@ -18,18 +34,21 @@ final class SessionManager: ObservableObject {
         self.currentReps = 0
         self.feedback = .ready
         self.nextExerciseName = nil
+        self.quitMessage = nil
         self.state = .active
         self.isAdvancing = false
     }
 
-    func endSession() {
-        routine = nil
-        currentExerciseIndex = 0
-        currentReps = 0
-        feedback = .ready
-        nextExerciseName = nil
-        state = .idle
-        isAdvancing = false
+    func beginQuit(message: String = "Returning to Home Screen") {
+        guard state != .quitting else { return }
+
+        quitMessage = message
+        state = .quitting
+
+        Task {
+            try? await Task.sleep(nanoseconds: 1_300_000_000)
+            goHome()
+        }
     }
 
     var currentExercise: RehabExercise? {
@@ -38,12 +57,14 @@ final class SessionManager: ObservableObject {
     }
 
     func updateProgress(reps: Int, feedback: ExerciseFeedback) {
-        guard state == .active, let exercise = currentExercise else { return }
+        guard state == .active,
+              let exercise = currentExercise,
+              let targetReps = exercise.targetReps else { return }
 
-        currentReps = min(reps, exercise.targetReps)
+        currentReps = min(reps, targetReps)
         self.feedback = feedback
 
-        if currentReps >= exercise.targetReps && !isAdvancing {
+        if currentReps >= targetReps && !isAdvancing {
             completeCurrentExercise()
         }
     }
@@ -59,14 +80,12 @@ final class SessionManager: ObservableObject {
 
             Task {
                 try? await Task.sleep(nanoseconds: 1_500_000_000)
-                await MainActor.run {
-                    self.currentExerciseIndex += 1
-                    self.currentReps = 0
-                    self.feedback = .ready
-                    self.nextExerciseName = nil
-                    self.state = .active
-                    self.isAdvancing = false
-                }
+                currentExerciseIndex += 1
+                currentReps = 0
+                feedback = .ready
+                nextExerciseName = nil
+                state = .active
+                isAdvancing = false
             }
         } else {
             feedback = .complete

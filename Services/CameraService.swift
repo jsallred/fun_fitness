@@ -1,10 +1,3 @@
-//
-//  CameraService.swift
-//  fun_fitness
-//
-//  Created by Joseph Allred on 3/9/26.
-//
-
 import Foundation
 import AVFoundation
 import UIKit
@@ -25,13 +18,20 @@ final class CameraService: NSObject {
     private var isConfigured = false
 
     func start() {
-        sessionQueue.async {
-            if !self.isConfigured {
-                self.configureSession()
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            startSession()
+
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                guard granted else { return }
+                self?.startSession()
             }
 
-            guard !self.session.isRunning else { return }
-            self.session.startRunning()
+        case .denied, .restricted:
+            print("Camera access not granted.")
+        @unknown default:
+            print("Unknown camera authorization state.")
         }
     }
 
@@ -42,14 +42,26 @@ final class CameraService: NSObject {
         }
     }
 
+    private func startSession() {
+        sessionQueue.async {
+            if !self.isConfigured {
+                self.configureSession()
+            }
+
+            guard self.isConfigured, !self.session.isRunning else { return }
+            self.session.startRunning()
+        }
+    }
+
     private func configureSession() {
         session.beginConfiguration()
         session.sessionPreset = .high
 
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
               let input = try? AVCaptureDeviceInput(device: device),
-              self.session.canAddInput(input) else {
+              session.canAddInput(input) else {
             session.commitConfiguration()
+            print("Unable to configure front camera input.")
             return
         }
 
@@ -61,8 +73,9 @@ final class CameraService: NSObject {
         ]
         videoOutput.setSampleBufferDelegate(self, queue: outputQueue)
 
-        guard self.session.canAddOutput(videoOutput) else {
+        guard session.canAddOutput(videoOutput) else {
             session.commitConfiguration()
+            print("Unable to add video output.")
             return
         }
 
