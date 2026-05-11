@@ -7,7 +7,7 @@ struct GuidedSessionView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            CameraPreviewView(session: viewModel.cameraService.session)
+            CameraPreviewView(camera: viewModel.cameraService)
                 .ignoresSafeArea()
 
             PoseOverlayView(frame: viewModel.snapshot.poseFrame)
