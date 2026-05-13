@@ -153,7 +153,7 @@ struct TrackedPerson: Identifiable, Equatable {
 
     var hudAnchor: CGPoint {
         let rect = normalizedBoundingRect
-        return CGPoint(x: rect.minX, y: max(0.02, rect.minY - 0.05))
+        return CGPoint(x: rect.midX, y: max(0.035, rect.minY - 0.065))
     }
 
     var normalizedBoundingRect: CGRect {

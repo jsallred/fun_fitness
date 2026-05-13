@@ -14,7 +14,10 @@ struct GuidedSessionView: View {
                 trackedPeople: viewModel.snapshot.trackedPeople,
                 showHUDs: viewModel.settings.showPersonHUDs,
                 showIDs: viewModel.settings.showPersonIDs,
-                highlightTentativeTracks: viewModel.settings.highlightTentativeTracks
+                highlightTentativeTracks: viewModel.settings.highlightTentativeTracks,
+                showSquatDebugInfo: viewModel.settings.showSquatDebugInfo,
+                showJumpingJackDebugInfo: viewModel.settings.showJumpingJackDebugInfo,
+                showBicepCurlDebugInfo: viewModel.settings.showBicepCurlDebugInfo
             )
             .ignoresSafeArea()
 
@@ -29,13 +32,17 @@ struct GuidedSessionView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 10) {
-                topCard
-                Spacer()
-                bottomCard
+            if viewModel.isDemoRoutineActive {
+                demoChrome
+            } else {
+                VStack(spacing: 10) {
+                    topCard
+                    Spacer()
+                    bottomCard
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
 
             if viewModel.sessionManager.state == .transitioning {
                 transitionOverlay
@@ -48,7 +55,8 @@ struct GuidedSessionView: View {
         .sheet(isPresented: $viewModel.isShowingSettings) {
             SettingsView(
                 settings: viewModel.settings,
-                selectedModel: $viewModel.selectedModel
+                selectedModel: $viewModel.selectedModel,
+                sessionDetails: viewModel.settingsDetails
             )
         }
         .onAppear {
@@ -57,6 +65,49 @@ struct GuidedSessionView: View {
         .onDisappear {
             viewModel.stopCamera()
         }
+    }
+
+
+    private var demoChrome: some View {
+        VStack {
+            HStack(spacing: 10) {
+                Text("People visible: \(viewModel.snapshot.trackedPeople.count)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(.black.opacity(0.55))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                Spacer()
+
+                Button(action: {
+                    viewModel.openSettings()
+                }) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(10)
+                        .background(.black.opacity(0.55))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+
+                Button(action: {
+                    viewModel.beginQuitRoutine(message: "Returning to Home Screen")
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(10)
+                        .background(Color.red.opacity(0.88))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
     }
 
     private var topCard: some View {

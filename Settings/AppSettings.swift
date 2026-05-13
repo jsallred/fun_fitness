@@ -3,11 +3,15 @@ import Combine
 
 @MainActor
 final class AppSettings: ObservableObject {
-    @Published var multiPersonTrackingEnabled: Bool = false
+    @Published var multiPersonTrackingEnabled: Bool = true
     @Published var faceAssistedRecognitionEnabled: Bool = false
     @Published var showPersonHUDs: Bool = true
     @Published var showPersonIDs: Bool = false
     @Published var highlightTentativeTracks: Bool = false
+
+    @Published var showSquatDebugInfo: Bool = false
+    @Published var showJumpingJackDebugInfo: Bool = false
+    @Published var showBicepCurlDebugInfo: Bool = false
 
     @Published var audioCuesEnabled: Bool = true
 

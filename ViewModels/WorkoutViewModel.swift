@@ -50,6 +50,30 @@ final class WorkoutViewModel: ObservableObject {
         sessionManager.routine?.isDemoRoutine == true
     }
 
+    var settingsDetails: [(title: String, value: String)] {
+        let readyCount = snapshot.trackedPeople.filter(\.isReadyForExercise).count
+        var rows: [(title: String, value: String)] = [
+            ("Routine", sessionManager.routine?.name ?? "Session"),
+            ("People visible", "\(snapshot.trackedPeople.count)"),
+            ("Ready people", "\(readyCount)"),
+            ("FPS", snapshot.inferenceFPS <= 0 ? "--" : String(format: "%.1f", snapshot.inferenceFPS)),
+            ("Model", snapshot.model.displayName)
+        ]
+
+        if isDemoRoutineActive {
+            rows.append(("Mode", "Multi-person demo"))
+            rows.append(("Counting", "Squats, jumping jacks, bicep curls"))
+            rows.append(("Rep requirement", "Person must be green / ready"))
+        } else {
+            rows.append(("Feedback", sessionManager.feedback.rawValue))
+            if let currentExercise = sessionManager.currentExercise {
+                rows.append(("Current exercise", currentExercise.type.displayName))
+            }
+        }
+
+        return rows
+    }
+
     init() {
         snapshot.model = selectedModel
         cameraService.delegate = self
@@ -195,9 +219,11 @@ final class WorkoutViewModel: ObservableObject {
             if isDemoRoutineActive {
                 let oldSquats = old?.exerciseState.demoCounters.squats ?? 0
                 let oldJacks = old?.exerciseState.demoCounters.jumpingJacks ?? 0
+                let oldCurls = old?.exerciseState.demoCounters.bicepCurls ?? 0
 
                 if (person.exerciseState.demoCounters.squats > oldSquats ||
-                    person.exerciseState.demoCounters.jumpingJacks > oldJacks) && !playedRep {
+                    person.exerciseState.demoCounters.jumpingJacks > oldJacks ||
+                    person.exerciseState.demoCounters.bicepCurls > oldCurls) && !playedRep {
                     audioCueService.playRepComplete()
                     playedRep = true
                 }

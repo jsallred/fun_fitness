@@ -22,6 +22,7 @@ enum ActivityType: String {
     case unknown
     case squat
     case jack
+    case curl
 }
 
 struct PosePoint: Identifiable, Equatable {

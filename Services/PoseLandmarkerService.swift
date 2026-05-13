@@ -39,7 +39,7 @@ final class PoseLandmarkerService: NSObject {
 
         let options = PoseLandmarkerOptions()
         options.runningMode = .liveStream
-        options.numPoses = 2
+        options.numPoses = 8
         options.minPoseDetectionConfidence = 0.6
         options.minPosePresenceConfidence = 0.6
         options.minTrackingConfidence = 0.6
@@ -123,7 +123,7 @@ final class PoseLandmarkerService: NSObject {
             }
         }
 
-        return Array(kept.prefix(2))
+        return Array(kept.prefix(8))
     }
 
     private func intersectionOverUnion(_ a: CGRect, _ b: CGRect) -> Double {

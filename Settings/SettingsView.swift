@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @Binding var selectedModel: PoseModelVariant
+    var sessionDetails: [(title: String, value: String)] = []
 
     @Environment(\.dismiss) private var dismiss
 
@@ -22,6 +23,34 @@ struct SettingsView: View {
                     Text("Tracking")
                 } footer: {
                     Text("Highlight tentative tracks only changes how unstable tracks are emphasized visually. When it is on, newly stabilizing tracks are easier to spot.")
+                }
+
+                Section {
+                    Toggle("Show squat debug info", isOn: $settings.showSquatDebugInfo)
+                    Toggle("Show jumping jack debug info", isOn: $settings.showJumpingJackDebugInfo)
+                    Toggle("Show bicep curl debug info", isOn: $settings.showBicepCurlDebugInfo)
+                } header: {
+                    Text("Demo Exercise Debug")
+                } footer: {
+                    Text("These toggles print per-person angles and state-machine details directly under each person's HUD while you calibrate rep confidence.")
+                }
+
+                if !sessionDetails.isEmpty {
+                    Section {
+                        ForEach(sessionDetails, id: \.title) { detail in
+                            HStack {
+                                Text(detail.title)
+                                Spacer()
+                                Text(detail.value)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.trailing)
+                            }
+                        }
+                    } header: {
+                        Text("Relevant Details")
+                    } footer: {
+                        Text("These are the session details moved off the camera view so the demo stays focused on per-person counters.")
+                    }
                 }
 
                 Section {

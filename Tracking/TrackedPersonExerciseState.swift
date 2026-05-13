@@ -10,10 +10,19 @@ struct GuidedRoutineProgress: Equatable {
 struct DemoCounters: Equatable {
     var squats: Int = 0
     var jumpingJacks: Int = 0
+    var bicepCurls: Int = 0
+}
+
+struct DemoRepFlashTimes: Equatable {
+    var squats: Int = 0
+    var jumpingJacks: Int = 0
+    var bicepCurls: Int = 0
 }
 
 struct TrackedPersonExerciseState: Equatable {
     var demoCounters = DemoCounters()
+    var demoDebugInfo = DemoExerciseDebugInfo()
+    var demoRepFlashTimes = DemoRepFlashTimes()
     var guidedProgress = GuidedRoutineProgress()
 
     var lastDetectedActivity: ActivityType = .unknown
@@ -29,11 +38,7 @@ struct TrackedPersonExerciseState: Equatable {
             }
         }
 
-        if demoCounters.squats > 0 || demoCounters.jumpingJacks > 0 {
-            return "Squats \(demoCounters.squats) • Jacks \(demoCounters.jumpingJacks)"
-        }
-
-        return "Waiting"
+        return "Squats \(demoCounters.squats) • Jacks \(demoCounters.jumpingJacks) • Curls \(demoCounters.bicepCurls)"
     }
 }
 
@@ -47,10 +52,27 @@ final class TrackedPersonExerciseEngine {
     }
 
     func updateDemo(points: [PosePoint], timestampMs: Int, state: inout TrackedPersonExerciseState) {
+        let oldCounters = state.demoCounters
+
         demoTracker.update(points: points, nowMs: timestampMs)
+
         state.demoCounters.squats = demoTracker.squat.reps
         state.demoCounters.jumpingJacks = demoTracker.jack.reps
+        state.demoCounters.bicepCurls = demoTracker.curl.reps
+        state.demoDebugInfo = demoTracker.debugInfo
         state.lastDetectedActivity = demoTracker.activity
+
+        let wallClockMs = Int(Date().timeIntervalSince1970 * 1000)
+
+        if state.demoCounters.squats > oldCounters.squats {
+            state.demoRepFlashTimes.squats = wallClockMs
+        }
+        if state.demoCounters.jumpingJacks > oldCounters.jumpingJacks {
+            state.demoRepFlashTimes.jumpingJacks = wallClockMs
+        }
+        if state.demoCounters.bicepCurls > oldCounters.bicepCurls {
+            state.demoRepFlashTimes.bicepCurls = wallClockMs
+        }
     }
 
     func updateGuided(
